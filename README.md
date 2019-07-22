@@ -7,7 +7,7 @@ into your Elasticsearch (ES) instance.
 
 With `elasticsearch_fixtures` you can do something like this:
 
-```
+```py
 import pytest
 
 from django.test import RequestFactory
@@ -26,8 +26,14 @@ class TestMyView:
 
     req = RequestFactory().get('/')
     resp = views.search_view(req, search="Foobar")
-    assert len(resp) == 1, 'Finds only one item'
+    assert len(resp) == 1, 'Finds only one item that has Foobar in the title'
     assert resp[0].title == 'Foobar', 'Finds the item we searched for'
+
+    # You can also update an existing document
+    product1 = es_mixer.update('product', id=1, title="New Title", published=False)
+    resp = views.search_view(req, search="Foobar")
+    assert len(resp) == 0, (
+      'Finds zero items, because no item has Foobar in the title any more')
 ```
 
 Big word of warning: We are no ES experts. We have only started using ES around
