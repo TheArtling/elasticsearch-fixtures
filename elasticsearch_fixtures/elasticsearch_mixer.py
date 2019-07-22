@@ -3,7 +3,7 @@ import requests
 
 class ESMixer:
 
-    def __init__(self, host, index):
+    def __init__(self, host):
         """
         Initializes an ESMixer instance.
 
@@ -26,6 +26,15 @@ class ESMixer:
         resp = requests.post(url, json=data)
         return resp.json()
 
+    def get(self, index, id):
+        """
+        Returns the given document for the given index.
+
+        """
+        url = f'{self.host}{index}/_doc/{id}'
+        resp = requests.get(url)
+        return resp.json()
+
     def blend(self, index, id, **kwargs):
         """
         Creates or replaces the given document in the index.
@@ -39,8 +48,8 @@ class ESMixer:
         """
         url = f'{self.host}{index}/_doc/{id}'
         data = kwargs
-        resp = requests.put(url, json=data)
-        return resp.json()
+        requests.put(url, json=data)
+        return self.get(index, id)
 
     def update(self, index, id, **kwargs):
         """
@@ -53,5 +62,5 @@ class ESMixer:
         """
         url = f'{self.host}{index}/_doc/{id}/_update'
         data = {'doc': {**kwargs}}
-        resp = requests.post(url, json=data)
-        return resp.json()
+        requests.post(url, json=data)
+        return self.get(index, id)
