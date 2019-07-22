@@ -34,6 +34,11 @@ class TestMyView:
     resp = views.search_view(req, search="Foobar")
     assert len(resp) == 0, (
       'Finds zero items, because no item has Foobar in the title any more')
+
+    # You can also get an existing document
+    product1 = es_mixer.get('product', 1)
+    assert product1['source']['title'] == 'New Title', (
+      'Returns the correct document')
 ```
 
 Big word of warning: We are no ES experts. We have only started using ES around

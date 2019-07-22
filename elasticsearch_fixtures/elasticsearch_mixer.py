@@ -35,7 +35,7 @@ class ESMixer:
         resp = requests.get(url)
         return resp.json()
 
-    def blend(self, index, id, **kwargs):
+    def blend(self, index, id=None, **kwargs):
         """
         Creates or replaces the given document in the index.
 
@@ -43,13 +43,18 @@ class ESMixer:
           created.
         :id: The id of the document. If a document with this id already exists,
           the existing document will be replaced, otherwise a new document will
-          be created.
+          be created. If no id is given, a new document will be created and a
+          new id will be auto-created.
 
         """
-        url = f'{self.host}{index}/_doc/{id}'
-        data = kwargs
-        requests.put(url, json=data)
-        return self.get(index, id)
+        url = f'{self.host}{index}/_doc/'
+        method = 'post'
+        if id is not None:
+            method = 'put'
+            url += id
+        resp = getattr(requests, method)(url, json=kwargs)
+        _id = resp.json()['_id']
+        return self.get(index, _id)
 
     def update(self, index, id, **kwargs):
         """
