@@ -11,7 +11,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 install_requires = open('requirements.txt').read().splitlines()
 
 setup(
-    name='elasticsearch-fixtues',
+    name='elasticsearch-fixtures',
     version=elasticsearch_fixtures.__version__,
     packages=find_packages(),
     include_package_data=True,
