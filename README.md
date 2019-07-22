@@ -4,8 +4,8 @@ This tool is heavily inspired by [klen's Mixer](https://github.com/klen/mixer).
 
 This tool is optimized to be used with `Django` and `pytest`.
 
-It allows you to write unittests for your application and write documents
-into your Elasticsearch (ES) instance as test-fixtures.
+It allows you to add documents to a test-index in yout Elasticsearch instance
+when you run your unittests.
 
 With `elasticsearch_fixtures` you can do something like this:
 
