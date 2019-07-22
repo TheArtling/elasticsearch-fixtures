@@ -2,43 +2,42 @@
 
 This tool is heavily inspired by [klen's Mixer](https://github.com/klen/mixer).
 
+This tool is optimized to be used with `Django` and `pytest`.
+
 It allows you to write unittests for your application and write documents
-into your Elasticsearch (ES) instance.
+into your Elasticsearch (ES) instance as test-fixtures.
 
 With `elasticsearch_fixtures` you can do something like this:
 
 ```py
-import pytest
+from elasticsearch_fixtures.es_mixer import ESMixer
 
-from django.test import RequestFactory
+es_mixer = ESMixer(host='http://localhost:9200/')
 
-# fictional graphene schema, let's assume this schema has a resolver that
-# queries ES and returns an array of found documents
-from .. import schema
+def test_something():
+  doc1 = es_mixer.blend('indexname', id=1, title='test')
+  assert doc1['source']['title'] == 'test'
+```
 
-from elasticsearch_fixtures import es_mixer
+Note: If you provide an `id` and a document with that `id` already exists, that
+document will not be updated, but fully replaced.
 
-class TestMyView:
-  def test_my_function(self):
-    # let's assume there is a document type `product`
-    product1 = es_mixer.blend('product', id=1, title="Foobar")
-    product1 = es_mixer.blend('product', id=2, title="Barfoo")
+You can also create documents without providing an `id`. Elasticsearch will then
+auto-create an `id`:
 
-    req = RequestFactory().get('/')
-    resp = views.search_view(req, search="Foobar")
-    assert len(resp) == 1, 'Finds only one item that has Foobar in the title'
-    assert resp[0].title == 'Foobar', 'Finds the item we searched for'
+```py
+def test_something():
+  doc1 = es_mixer.blend('indexname', title='test')
+  print(doc1['id'])
+```
 
-    # You can also update an existing document
-    product1 = es_mixer.update('product', id=1, title="New Title", published=False)
-    resp = views.search_view(req, search="Foobar")
-    assert len(resp) == 0, (
-      'Finds zero items, because no item has Foobar in the title any more')
+And you can update an existing document that is already in the index:
 
-    # You can also get an existing document
-    product1 = es_mixer.get('product', 1)
-    assert product1['source']['title'] == 'New Title', (
-      'Returns the correct document')
+```py
+def test_something():
+  es_mixer.blend('indexname', id=1, title='test')
+  doc1 = es_mixer.update('indexname', id=1, title='new title')
+  assert doc1['source']['title'] == 'new_title'
 ```
 
 Big word of warning: We are no ES experts. We have only started using ES around
@@ -50,9 +49,37 @@ would love to hear about it (just open an issue and tell us about it!).
 # Installation
 
 ```
-pip install elasticsearch-features
+pip install elasticsearch-fixtures
 ```
 
-# TODO
+# Configuration
 
-- How to make sure that ES is empty at the beginning of each test?
+In order to make sure that your tests wipe the index at the very beginning and
+also after each test, create the following `conftest.py`:
+
+```py
+"""Global settings for pytest."""
+import pytest
+
+from django.conf import settings
+
+from elasticsearch_fixtures.es_mixer import ESMixer
+
+es_mixer = ESMixer(host=settings.ELASTICSEARCH_HOST)
+index = settings.ELASTICSEARCH_INDEX
+
+
+@pytest.fixture(scope='session', autouse=True)
+def setup_elasticsearch():
+    es_mixer.wipe_index(index)
+
+
+@pytest.fixture(autouse=True)
+def cleanup_elasticsearch():
+    yield
+    es_mixer.wipe_index(index)
+```
+
+As you can see, in this example we also use a Django setting called
+`ELASTICSEARCH_HOST` (with a trailing slash) and `ELASTICSEARCH_INDEX`. Of
+course you can name your own settings however you like.
