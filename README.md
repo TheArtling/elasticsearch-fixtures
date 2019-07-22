@@ -36,6 +36,12 @@ to properly write unittests for our Django views and Graphene resolver
 functions. There are probably much better ways to do this. If you know one, we
 would love to hear about it (just open an issue and tell us about it!).
 
+# Installation
+
+```
+pip install elasticsearch-features
+```
+
 # TODO
 
 - How to make sure that ES is empty at the beginning of each test?
