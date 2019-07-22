@@ -24,6 +24,7 @@ class ESMixer:
         url = f'{self.host}{index}/_delete_by_query?conflicts=proceed'
         data = {'query': {'match_all': {}}}
         resp = requests.post(url, json=data)
+        self.flush(index)
         return resp.json()
 
     def get(self, index, id):
@@ -33,6 +34,15 @@ class ESMixer:
         """
         url = f'{self.host}{index}/_doc/{id}'
         resp = requests.get(url)
+        return resp.json()
+
+    def flush(self, index):
+        """
+        Flushes the index to the disk.
+
+        """
+        url = f'{self.host}{index}/_flush'
+        resp = requests.post(url)
         return resp.json()
 
     def blend(self, index, id=None, **kwargs):
@@ -51,10 +61,12 @@ class ESMixer:
         method = 'post'
         if id is not None:
             method = 'put'
-            url += id
+            url += str(id)
         resp = getattr(requests, method)(url, json=kwargs)
+        self.flush(index)
         _id = resp.json()['_id']
-        return self.get(index, _id)
+        doc = self.get(index, _id)
+        return doc
 
     def update(self, index, id, **kwargs):
         """
@@ -68,4 +80,5 @@ class ESMixer:
         url = f'{self.host}{index}/_doc/{id}/_update'
         data = {'doc': {**kwargs}}
         requests.post(url, json=data)
+        self.flush(index)
         return self.get(index, id)
