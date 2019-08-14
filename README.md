@@ -7,6 +7,8 @@ This tool is optimized to be used with `Django` and `pytest`.
 It allows you to add documents to a test-index in yout Elasticsearch instance
 when you run your unittests.
 
+WARNING: This does not work when you run your tests in parallel. Since it does not create an in-memory ES instance for each test, parallel tests will affect their shared ES instance and that can mess things up.
+
 With `elasticsearch_fixtures` you can do something like this:
 
 ```py
